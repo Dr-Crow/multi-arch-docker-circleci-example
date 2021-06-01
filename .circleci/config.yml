@@ -32,6 +32,7 @@ jobs:
       GIT_BRANCH: $CIRCLE_BRANCH
       RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
+      FORCE_CI: true
 
 
 workflows:
