@@ -1,0 +1,21 @@
+version: "3.6"
+services:
+  flask:
+#    image: test:circle
+    build:
+        dockerfile: Dockerfile
+        context: ../
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    env_file:
+      - env/demo.env
+    depends_on:
+      - db
+  db:
+    image: postgres:13-alpine
+    restart: always
+    env_file:
+      - env/demo.env
+    volumes:
+      - ./config/user_and_role.sql:/docker-entrypoint-initdb.d/user_and_role.sql
