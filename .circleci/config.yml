@@ -37,7 +37,7 @@ jobs:
 workflows:
   demo:
     jobs:
-#      - build-and-push:
-#          architecture: arm64
+      - build-and-push:
+          architecture: arm64
       - build-and-push:
           architecture: amd64
