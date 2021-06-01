@@ -21,9 +21,15 @@ RUN addgroup --gid ${GID} ${GROUP} \
 # Set Working Directory
 WORKDIR /demo
 
-# Install required packages for the demo and remove the text file
-RUN pip install --no-cache-dir -r requirements.txt \
-    && rm -f requirements.txt
+# Installs need packages to compile psycopg2 as there is no arm64 binary in PyPi
+# Then removes build dependencies and requirements.txt
+RUN BUILDDEPS='libpq-dev python3-dev gcc' \
+    && apt-get update && apt-get upgrade -y \
+    && apt-get --no-install-recommends install -y ${BUILDDEPS} \
+    && pip install --no-cache-dir -r requirements.txt \
+    && rm -f requirements.txt \
+    && apt-get purge -y --auto-remove ${BUILDDEPS} \
+    && rm -rf /var/lib/apt/lists/*
 
 # Switch to non-root user
 USER demo
