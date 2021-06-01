@@ -26,18 +26,18 @@ jobs:
     executor: << parameters.architecture >>
     steps:
       - build
-  environment:
-    DOCKER_IMAGE: multi-arch-demo
-    SUPPORTED_ARCHITECTURES: "amd64 arm64"
-    GIT_BRANCH: $CIRCLE_BRANCH
-    RELEASE_BRANCH: main
-    DOCKER_NAMESPACE: drcrow
+    environment:
+      DOCKER_IMAGE: multi-arch-demo
+      SUPPORTED_ARCHITECTURES: "amd64 arm64"
+      GIT_BRANCH: $CIRCLE_BRANCH
+      RELEASE_BRANCH: main
+      DOCKER_NAMESPACE: drcrow
 
 
 workflows:
   demo:
     jobs:
-      - build-and-push:
-          architecture: arm64
+#      - build-and-push:
+#          architecture: arm64
       - build-and-push:
           architecture: amd64
