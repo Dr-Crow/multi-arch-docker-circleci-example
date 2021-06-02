@@ -5,7 +5,7 @@ commands:
     description: "Set need environment variables needed for Build Tools"
     steps:
       - run:
-          name: Setup Environment Variables
+          name: Setup Build Tool Environment Variables
           command: |
             echo "export GIT_BRANCH=${CIRCLE_BRANCH}" >> $BASH_ENV
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then echo "export IS_PULL_REQUEST='false'"; else echo "export IS_PULL_REQUEST='true'"; fi  >> $BASH_ENV
@@ -15,18 +15,17 @@ commands:
     description: "Build Docker image via Build Tools"
     steps:
       - checkout
-      - run: printenv
       - run:
           name: Build Docker Image
-          command: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}"
+          command: ./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}
 
   save-docker-image:
     description: "Saves a Docker image for future Jobs"
     steps:
-      - run: "mkdir -p /tmp/docker-images/"
+      - run: mkdir -p /tmp/docker-images/
       - run:
           name: Saving Docker Image
-          command: "docker save --output /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
+          command: docker save --output /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -39,7 +38,7 @@ commands:
           at: /tmp
       - run:
             name: Loading Docker Image
-            command: "docker load --input /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar"
+            command: docker load --input /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar
 
   test:
     description: "Launches tests against the Docker image"
@@ -55,7 +54,7 @@ commands:
             goss -version
       - run:
           name: Run dgoss Test
-          command: "dgoss run -p 8080:80 ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
+          command: dgoss run -p 8080:80 ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}
 
   push:
     description: "Pushes Docker Image to DockerHub"
@@ -63,7 +62,7 @@ commands:
       - checkout
       - run:
           name: Push Image
-          command: "./.ci/push.sh --image ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:${CIRCLE_SHA1}"
+          command: ./.ci/push.sh --image ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:${CIRCLE_SHA1}
 
 
 executors:
