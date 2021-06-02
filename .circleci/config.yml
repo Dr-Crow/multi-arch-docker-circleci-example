@@ -8,7 +8,7 @@ commands:
           name: Setup Environment Variables
           command: |
             echo "export GIT_BRANCH=${CIRCLE_BRANCH}" >> $BASH_ENV
-            [[ -z '${CIRCLE_PULL_REQUEST}' ]] && echo "export IS_PULL_REQUEST='false'" || echo "export IS_PULL_REQUEST='true'"  >> $BASH_ENV
+            if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then echo "export IS_PULL_REQUEST='false'"; else echo "export IS_PULL_REQUEST='true'"; fi  >> $BASH_ENV
             source $BASH_ENV
 
   build:
