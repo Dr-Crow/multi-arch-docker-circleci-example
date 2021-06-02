@@ -11,7 +11,7 @@ commands:
   save-docker-image:
     description: "Saves a Docker image for future Jobs"
     steps:
-      - run: "docker save --output /tmp/docker-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}}-${CIRCLE_BUILD_NUM}.tar ${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}"
+      - run: "docker save --output /tmp/docker-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}.tar ${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}"
       - run: "ls -lah /tmp/docker-images/"
       - persist_to_workspace:
           root: /tmp
@@ -24,7 +24,7 @@ commands:
       - attach_workspace:
           at: /tmp/load-images
       - run: "ls -lah /tmp/load-images/"
-      - run: "docker load --input /tmp/load-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}}-${CIRCLE_BUILD_NUM}.tar"
+      - run: "docker load --input /tmp/load-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}.tar"
       - run: "docker images"
 
 executors:
@@ -73,16 +73,18 @@ workflows:
   demo:
     jobs:
       - build-image:
-          name: build-arm64
+          name: build-image-arm64
           architecture: arm64
       - build-image:
-          name: build-amd64
+          name: build-image-amd64
           architecture: amd64
       - test-image:
+          name: test-image-arm64
           requires:
-            - build-arm64
+            - build-image-arm64
           architecture: arm64
       - test-image:
+          name: test-image-amd64
           requires:
-            - build-amd64
+            - build-image-amd64
           architecture: amd64
