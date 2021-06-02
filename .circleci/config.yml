@@ -11,6 +11,7 @@ commands:
   save-docker-image:
     description: "Saves a Docker image for future Jobs"
     steps:
+      - run: "mkdir -p /tmp/docker-images/"
       - run: "docker save --output /tmp/docker-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}.tar ${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}"
       - run: "ls -lah /tmp/docker-images/"
       - persist_to_workspace:
