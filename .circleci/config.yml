@@ -15,7 +15,8 @@ commands:
       - run: "ls -lah /tmp/docker-images/"
       - persist_to_workspace:
           root: /tmp
-          paths: docker-images/*
+          paths:
+            - docker-images/*
 
   load-docker-image:
     description: "Loads a Docker image"
@@ -76,8 +77,10 @@ workflows:
       - build-image:
           architecture: amd64
       - test-image:
-          requires: build-image
+          requires:
+            - build-image
           architecture: arm64
       - test-image:
-          requires: build-image
+          requires:
+            - build-image
           architecture: amd64
