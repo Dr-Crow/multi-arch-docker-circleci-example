@@ -2,10 +2,29 @@ version: 2.1
 
 commands:
   build:
+    description: "Build Docker image via Build Tools"
     steps:
       - checkout
-      - run: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_SHA1} --push"
+      - run: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_BUILD_NUM}"
+      - run: "docker images"
 
+  save-docker-image:
+    description: "Saves a Docker image for future Jobs"
+    steps:
+      - run: "docker save --output /tmp/docker-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}}-${CIRCLE_BUILD_NUM}.tar ${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}"
+      - run: "ls -lah /tmp/docker-images/"
+      - persist_to_workspace:
+          root: /tmp/docker-images/
+          path: *
+
+  load-docker-image:
+    description: "Loads a Docker image"
+    steps:
+      - attach_workspace:
+          at: /tmp/load-images
+      - run: "ls -lah /tmp/load-images/"
+      - run: "docker load --input /tmp/load-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}}-${CIRCLE_BUILD_NUM}.tar"
+      - run: "docker images"
 
 executors:
   arm64:
@@ -19,26 +38,46 @@ executors:
     resource_class: medium
 
 jobs:
-  build-and-push:
+  build-image:
     parameters:
       architecture:
         type: executor
     executor: << parameters.architecture >>
     steps:
       - build
+      - save-docker-image
     environment:
       DOCKER_IMAGE: multi-arch-demo
       SUPPORTED_ARCHITECTURES: "amd64 arm64"
-      GIT_BRANCH: $CIRCLE_BRANCH
+      GIT_BRANCH: main
       RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
-      FORCE_CI: true
+
+  test-image:
+    parameters:
+      architecture:
+        type: executor
+    executor: << parameters.architecture >>
+    steps:
+      - load-docker-image
+    environment:
+      DOCKER_IMAGE: multi-arch-demo
+      SUPPORTED_ARCHITECTURES: "amd64 arm64"
+      GIT_BRANCH: main
+      RELEASE_BRANCH: main
+      DOCKER_NAMESPACE: drcrow
 
 
 workflows:
   demo:
     jobs:
-      - build-and-push:
+      - build-image:
           architecture: arm64
-      - build-and-push:
+      - build-image:
+          architecture: amd64
+      - test-image:
+          requires: build-image
+          architecture: arm64
+      - test-image:
+          requires: build-image
           architecture: amd64
