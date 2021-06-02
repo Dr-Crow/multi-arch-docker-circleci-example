@@ -5,14 +5,14 @@ commands:
     description: "Build Docker image via Build Tools"
     steps:
       - checkout
-      - run: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_BUILD_NUM}"
+      - run: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}"
       - run: "docker images"
 
   save-docker-image:
     description: "Saves a Docker image for future Jobs"
     steps:
       - run: "mkdir -p /tmp/docker-images/"
-      - run: "docker save --output /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}.tar ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}"
+      - run: "docker save --output /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
       - run: "ls -lah /tmp/docker-images/"
       - persist_to_workspace:
           root: /tmp
@@ -23,9 +23,9 @@ commands:
     description: "Loads a Docker image"
     steps:
       - attach_workspace:
-          at: /tmp/load-images
-      - run: "ls -lah /tmp/load-images/"
-      - run: "docker load --input /tmp/load-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}.tar"
+          at: /tmp/docker-images
+      - run: "ls -lah /tmp/docker-images/"
+      - run: "docker load --input /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar"
       - run: "docker images"
 
 executors:
