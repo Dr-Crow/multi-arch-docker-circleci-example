@@ -23,7 +23,7 @@ commands:
     description: "Loads a Docker image"
     steps:
       - attach_workspace:
-          at: /tmp/docker-images
+          at: /tmp
       - run: "ls -lah /tmp/docker-images/"
       - run: "docker load --input /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar"
       - run: "docker images"
