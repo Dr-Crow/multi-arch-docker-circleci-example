@@ -4,9 +4,12 @@ commands:
   set-build-tools-env:
     description: "Set need environment variables needed for Build Tools"
     steps:
-      - run: "export GIT_BRANCH=${CIRCLE_BRANCH}"
-      - run: "[[ -z '${CIRCLE_PULL_REQUEST}' ]] && export IS_PULL_REQUEST='false' || export IS_PULL_REQUEST='true'"
-      - run: "printenv"
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo "export GIT_BRANCH=${CIRCLE_BRANCH}" >> $BASH_ENV
+            [[ -z '${CIRCLE_PULL_REQUEST}' ]] && echo "export IS_PULL_REQUEST=false" || echo "export IS_PULL_REQUEST=true"  >> $BASH_ENV
+            printenv
 
   build:
     description: "Build Docker image via Build Tools"
