@@ -14,8 +14,8 @@ commands:
       - run: "docker save --output /tmp/docker-images/${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}}-${CIRCLE_BUILD_NUM}.tar ${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_BUILD_NUM}"
       - run: "ls -lah /tmp/docker-images/"
       - persist_to_workspace:
-          root: /tmp/docker-images/
-          paths: *
+          root: /tmp
+          paths: docker-images/*
 
   load-docker-image:
     description: "Loads a Docker image"
