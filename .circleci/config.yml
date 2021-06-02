@@ -89,24 +89,25 @@ jobs:
       RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
       FORCE_CI: true
+      GOSS_SLEEP: 5
 
 
 workflows:
   demo:
     jobs:
       - build-image:
-          name: build-image-arm64
+          name: "Building ARM64 Image"
           architecture: arm64
       - build-image:
-          name: build-image-amd64
+          name: "Building AMD64 Image"
           architecture: amd64
       - test-image:
-          name: test-image-arm64
+          name: "Testing ARM64 Image"
           requires:
-            - build-image-arm64
+            - "Building ARM64 Image"
           architecture: arm64
       - test-image:
-          name: test-image-amd64
+          name: "Testing AMD64 Image"
           requires:
-            - build-image-amd64
+            - "Building AMD64 Image"
           architecture: amd64
