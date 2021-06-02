@@ -47,7 +47,7 @@ Project structure:
 ├── depolyment                  - Deployment Files for Full Stack Application (Postgres + Flask App) 
 |    |── docker-compose.yml
 |    |── config/                - Configuration files for Full Stack Deployment (SQL files)
-|    |── env/                   - Enviroment File for Full Stack Deployment (DB Creds and Flask Creds)
+|    |── env/                   - Environment File for Full Stack Deployment (DB Creds and Flask Creds)
 ├── Dockerfile                  - Flask Application Dockerfile
 
 ```

@@ -1,6 +1,13 @@
 version: 2.1
 
 commands:
+  set-build-tools-env:
+    description: "Set need environment variables needed for Build Tools"
+    steps:
+      - run: "export GIT_BRANCH=${CIRCLE_BRANCH}"
+      - run: "[[ -z '${CIRCLE_PULL_REQUEST}' ]] && export IS_PULL_REQUEST='false' || export IS_PULL_REQUEST='true'"
+      - run: "printenv"
+
   build:
     description: "Build Docker image via Build Tools"
     steps:
@@ -46,6 +53,15 @@ commands:
           name: Run dgoss Test
           command: "dgoss run -p 8080:80 ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
 
+  push:
+    description: "Pushes Docker Image to DockerHub"
+      steps:
+        - checkout
+        - run:
+            name: Push Image
+            command: "./.ci/push.sh --image ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:${CIRCLE_SHA1}"
+
+
 executors:
   arm64:
     machine:
@@ -57,6 +73,7 @@ executors:
       image: ubuntu-2004:202010-01
     resource_class: medium
 
+
 jobs:
   build-image:
     parameters:
@@ -64,15 +81,14 @@ jobs:
         type: executor
     executor: << parameters.architecture >>
     steps:
+      - set-build-tools-env
       - build
       - save-docker-image
     environment:
       DOCKER_IMAGE: multi-arch-demo
       SUPPORTED_ARCHITECTURES: "amd64 arm64"
-      GIT_BRANCH: main
       RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
-      FORCE_CI: true
 
   test-image:
     parameters:
@@ -80,16 +96,26 @@ jobs:
         type: executor
     executor: << parameters.architecture >>
     steps:
+      - set-build-tools-env
       - load-docker-image
       - test
     environment:
       DOCKER_IMAGE: multi-arch-demo
-      SUPPORTED_ARCHITECTURES: "amd64 arm64"
-      GIT_BRANCH: main
-      RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
-      FORCE_CI: true
       GOSS_SLEEP: 10
+
+  push-image:
+    parameters:
+      architecture:
+        type: executor
+    executor: << parameters.architecture >>
+    steps:
+      - set-build-tools-env
+      - load-docker-image
+      - push
+    environment:
+      DOCKER_IMAGE: multi-arch-demo
+      DOCKER_NAMESPACE: drcrow
 
 
 workflows:
@@ -111,3 +137,11 @@ workflows:
           requires:
             - "Building AMD64 Image"
           architecture: amd64
+      - push-image:
+          name: "Pushing ARM64 Image"
+          requires:
+            - "Testing ARM64 Image"
+      - push-image:
+          name: "Pushing AMD64 Image"
+          requires:
+            - "Testing AMD64 Image"
