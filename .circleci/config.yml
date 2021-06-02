@@ -73,14 +73,16 @@ workflows:
   demo:
     jobs:
       - build-image:
+          name: build-arm64
           architecture: arm64
       - build-image:
+          name: build-amd64
           architecture: amd64
       - test-image:
           requires:
-            - build-image
+            - build-arm64
           architecture: arm64
       - test-image:
           requires:
-            - build-image
+            - build-amd64
           architecture: amd64
