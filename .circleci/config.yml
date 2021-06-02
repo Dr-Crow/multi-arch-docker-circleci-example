@@ -15,7 +15,7 @@ commands:
       - run: "ls -lah /tmp/docker-images/"
       - persist_to_workspace:
           root: /tmp/docker-images/
-          path: *
+          paths: *
 
   load-docker-image:
     description: "Loads a Docker image"
