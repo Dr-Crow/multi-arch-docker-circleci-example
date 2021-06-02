@@ -89,9 +89,8 @@ jobs:
       - save-docker-image
     environment:
       DOCKER_IMAGE: multi-arch-demo
-      SUPPORTED_ARCHITECTURES: "amd64 arm64"
-      RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
+      RELEASE_BRANCH: main
 
   test-image:
     parameters:
@@ -119,6 +118,7 @@ jobs:
     environment:
       DOCKER_IMAGE: multi-arch-demo
       DOCKER_NAMESPACE: drcrow
+      RELEASE_BRANCH: main
 
 
 workflows:
