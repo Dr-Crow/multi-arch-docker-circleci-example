@@ -54,6 +54,7 @@ jobs:
       GIT_BRANCH: main
       RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
+      FORCE_CI: true
 
   test-image:
     parameters:
@@ -68,6 +69,7 @@ jobs:
       GIT_BRANCH: main
       RELEASE_BRANCH: main
       DOCKER_NAMESPACE: drcrow
+      FORCE_CI: true
 
 
 workflows:
