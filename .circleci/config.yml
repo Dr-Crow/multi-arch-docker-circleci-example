@@ -62,7 +62,7 @@ commands:
       - checkout
       - run:
           name: Push Image
-          command: ./.ci/push.sh --image ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:${CIRCLE_SHA1}
+          command: ./.ci/push.sh --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}
 
 
 executors:
