@@ -141,7 +141,9 @@ workflows:
           name: "Pushing ARM64 Image"
           requires:
             - "Testing ARM64 Image"
+          architecture: arm64
       - push-image:
           name: "Pushing AMD64 Image"
           requires:
             - "Testing AMD64 Image"
+          architecture: amd64
