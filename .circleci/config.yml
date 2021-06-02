@@ -5,15 +5,17 @@ commands:
     description: "Build Docker image via Build Tools"
     steps:
       - checkout
-      - run: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}"
-      - run: "docker images"
+      - run:
+          name: Build Docker Image
+          command: "./.ci/build.sh -f Dockerfile --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}"
 
   save-docker-image:
     description: "Saves a Docker image for future Jobs"
     steps:
       - run: "mkdir -p /tmp/docker-images/"
-      - run: "docker save --output /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
-      - run: "ls -lah /tmp/docker-images/"
+      - run:
+          name: Saving Docker Image
+          command: "docker save --output /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -24,9 +26,26 @@ commands:
     steps:
       - attach_workspace:
           at: /tmp
-      - run: "ls -lah /tmp/docker-images/"
-      - run: "docker load --input /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar"
-      - run: "docker images"
+      - run:
+            name: Loading Docker Image
+            command: "docker load --input /tmp/docker-images/${DOCKER_NAMESPACE}-${DOCKER_IMAGE}-$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}.tar"
+
+  test:
+    description: "Launches tests against the Docker image"
+    steps:
+      - checkout
+      - run:
+          name: Install goss
+          command: |
+            # rather than give internet scripts SU rights, we install to local user bin and add to path
+            mkdir ~/bin
+            export GOSS_DST=~/bin
+            export PATH=$PATH:~/bin
+            curl -fsSL https://goss.rocks/install | sh
+            goss -version
+      - run:
+          name: Run dgoss Test
+          command: "dgoss run -p 8080:80 ${DOCKER_NAMESPACE}/${DOCKER_IMAGE}:$(docker version -f {{.Server.Arch}})-${CIRCLE_SHA1}"
 
 executors:
   arm64:
@@ -63,6 +82,7 @@ jobs:
     executor: << parameters.architecture >>
     steps:
       - load-docker-image
+      - test
     environment:
       DOCKER_IMAGE: multi-arch-demo
       SUPPORTED_ARCHITECTURES: "amd64 arm64"
