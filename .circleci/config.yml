@@ -64,6 +64,32 @@ commands:
           name: Push Image
           command: ./.ci/push.sh --image ${DOCKER_IMAGE}:${CIRCLE_SHA1}
 
+  tagging:
+    description: "Add tags to Docker Image"
+    steps:
+      - checkout
+      - run:
+          name: Tag Image
+          command: ./.ci/tag-image.sh --image ${DOCKER_IMAGE}:${CIRCLE_SHA1} --tags "${CIRCLE_SHA1} latest"
+
+  docker-enable-experimental:
+    description: "Enable Experimental Features in Docker"
+    steps:
+      - checkout
+      - run:
+          name: Enable Experimental
+          command: enable-experimental.sh
+
+  manifests:
+    description: "Make and Push Manifests for Docker"
+    steps:
+      - checkout
+      - run:
+          name: Make Manifests
+          command: |
+            ./.ci/manifest.sh --image ${DOCKER_IMAGE} --manifest ${CIRCLE_SHA1} --push
+            ./.ci/manifest.sh --image ${DOCKER_IMAGE} --manifest latest --push
+
 
 executors:
   arm64:
@@ -120,6 +146,28 @@ jobs:
       DOCKER_NAMESPACE: drcrow
       RELEASE_BRANCH: main
 
+  tagging-image:
+    executor: amd64
+    steps:
+      - set-build-tools-env
+      - tagging
+    environment:
+      DOCKER_IMAGE: multi-arch-demo
+      DOCKER_NAMESPACE: drcrow
+      RELEASE_BRANCH: main
+      SUPPORTED_ARCHITECTURES: "amd64 arm64"
+
+  make-manifests:
+    executor: amd64
+    steps:
+      - set-build-tools-env
+      - docker-enable-experimental
+      - manifests
+    environment:
+      DOCKER_IMAGE: multi-arch-demo
+      DOCKER_NAMESPACE: drcrow
+      RELEASE_BRANCH: main
+      SUPPORTED_ARCHITECTURES: "amd64 arm64"
 
 workflows:
   demo:
@@ -137,9 +185,18 @@ workflows:
           requires:
             - "Building << matrix.architecture >> Image"
       - push-image:
-          name: "Pushing ARM64 Image"
+          name: "Pushing << matrix.architecture >> Image"
           matrix:
             parameters:
               architecture: ["arm64", "amd64"]
           requires:
             - "Testing << matrix.architecture >> Image"
+      - tagging-image:
+          name: "Tagging Images"
+          requires:
+            - "Testing arm64 Image"
+            - "Testing amd64 Image"
+      - make-manifests:
+          name: "Making and Push Manifests"
+          requires:
+            - "Tagging Images"
