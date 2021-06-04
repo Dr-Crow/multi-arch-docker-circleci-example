@@ -125,28 +125,21 @@ workflows:
   demo:
     jobs:
       - build-image:
-          name: "Building ARM64 Image"
-          architecture: arm64
-      - build-image:
-          name: "Building AMD64 Image"
-          architecture: amd64
+          name: "Building << matrix.architecture >> Image"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
       - test-image:
-          name: "Testing ARM64 Image"
+          name: "Testing << matrix.architecture >> Image"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
           requires:
-            - "Building ARM64 Image"
-          architecture: arm64
-      - test-image:
-          name: "Testing AMD64 Image"
-          requires:
-            - "Building AMD64 Image"
-          architecture: amd64
+            - "Building << matrix.architecture >> Image"
       - push-image:
           name: "Pushing ARM64 Image"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
           requires:
-            - "Testing ARM64 Image"
-          architecture: arm64
-      - push-image:
-          name: "Pushing AMD64 Image"
-          requires:
-            - "Testing AMD64 Image"
-          architecture: amd64
+            - "Testing << matrix.architecture >> Image"
