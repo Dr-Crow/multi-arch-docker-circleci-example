@@ -194,8 +194,8 @@ workflows:
       - tagging-image:
           name: "Tagging Images"
           requires:
-            - "Testing arm64 Image"
-            - "Testing amd64 Image"
+            - "Pushing arm64 Image"
+            - "Pushing amd64 Image"
       - make-manifests:
           name: "Making and Push Manifests"
           requires:
