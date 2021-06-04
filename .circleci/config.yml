@@ -78,7 +78,7 @@ commands:
       - checkout
       - run:
           name: Enable Experimental
-          command: enable-experimental.sh
+          command: ./.ci/enable-experimental.sh
 
   manifests:
     description: "Make and Push Manifests for Docker"
